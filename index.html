@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý sản phẩm - Cửa hàng nhà tôi</title>
+    <title>Quản lý sản phẩm Online</title>
     <style>
         * {
             margin: 0;
@@ -32,35 +32,64 @@
             color: white;
             padding: 25px 30px;
             text-align: center;
+            position: relative;
         }
 
         header h1 {
-            font-size: 28px;
+            font-size: 26px;
             margin-bottom: 5px;
         }
 
         header p {
             opacity: 0.9;
-            font-size: 15px;
+            font-size: 14px;
+        }
+
+        .status {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            font-size: 12px;
+            background: rgba(255,255,255,0.15);
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #94a3b8;
+        }
+
+        .status-dot.online {
+            background: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+        }
+
+        .status-dot.offline {
+            background: #ef4444;
         }
 
         .content {
-            padding: 30px;
+            padding: 28px;
         }
 
-        /* Form thêm sản phẩm */
         .form-section {
             background: #f8fafc;
             padding: 20px;
             border-radius: 12px;
-            margin-bottom: 25px;
+            margin-bottom: 22px;
             border: 1px solid #e2e8f0;
         }
 
         .form-section h2 {
-            font-size: 18px;
+            font-size: 17px;
             color: #1e293b;
-            margin-bottom: 15px;
+            margin-bottom: 14px;
         }
 
         .form-row {
@@ -72,7 +101,7 @@
         input[type="text"],
         input[type="number"] {
             flex: 1;
-            min-width: 150px;
+            min-width: 140px;
             padding: 12px 15px;
             border: 2px solid #e2e8f0;
             border-radius: 8px;
@@ -86,10 +115,10 @@
         }
 
         button {
-            padding: 12px 22px;
+            padding: 12px 20px;
             border: none;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
@@ -121,9 +150,8 @@
             display: none;
         }
 
-        /* Thanh tìm kiếm */
         .search-box {
-            margin-bottom: 25px;
+            margin-bottom: 22px;
             position: relative;
         }
 
@@ -150,7 +178,6 @@
             font-size: 18px;
         }
 
-        /* Bảng sản phẩm */
         .table-wrapper {
             overflow-x: auto;
             border-radius: 12px;
@@ -221,28 +248,65 @@
         }
 
         .stats {
-            margin-top: 20px;
+            margin-top: 18px;
             text-align: right;
             color: #64748b;
             font-size: 14px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #1e293b;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            z-index: 9999;
+            transform: translateX(120%);
+            transition: 0.3s;
+            max-width: 280px;
+        }
+
+        .toast.show {
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
         }
 
         @media (max-width: 600px) {
             .form-row {
                 flex-direction: column;
             }
-            
             button {
                 width: 100%;
             }
+            .status {
+                position: static;
+                justify-content: center;
+                margin-top: 10px;
+            }
         }
     </style>
+
+    <!-- Firebase SDK (cùng version với file game của bạn) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>📦 Quản lý sản phẩm</h1>
-            <p>Nhập tên & giá → Tìm kiếm nhanh khi bán hàng</p>
+            <h1>📦 Quản lý sản phẩm Online</h1>
+            <p>Dữ liệu lưu trên server · Nhiều người cùng xem & chỉnh</p>
+            <div class="status">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Đang kết nối...</span>
+            </div>
         </header>
 
         <div class="content">
@@ -276,7 +340,9 @@
                         </tr>
                     </thead>
                     <tbody id="productTable">
-                        <!-- Dữ liệu sẽ được thêm bằng JavaScript -->
+                        <tr>
+                            <td colspan="4" class="loading">⏳ Đang tải dữ liệu từ server...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -285,74 +351,161 @@
         </div>
     </div>
 
-    <script>
-        // Lấy dữ liệu từ localStorage
-        let products = JSON.parse(localStorage.getItem('products')) || [];
-        let editIndex = -1; // -1 nghĩa là đang ở chế độ thêm mới
+    <div class="toast" id="toast"></div>
 
-        // Hiển thị danh sách sản phẩm
-        function renderProducts(list = products) {
+    <script>
+        // ======================================================
+        // FIREBASE CONFIG (lấy từ file game của bạn)
+        // ======================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyapf8zLqz31Jc7gMUweXrZk1ReP07dv0",
+            databaseURL: "https://nhantin-4ee06-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "nhantin-4ee06"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ======================================================
+        // STATE
+        // ======================================================
+        let products = {};          // { id: { name, price, createdAt } }
+        let editId = null;          // id đang sửa
+        let isReady = false;
+
+        // ======================================================
+        // KẾT NỐI REALTIME
+        // ======================================================
+        const productsRef = db.ref('cua_hang_san_pham');
+
+        productsRef.on('value', (snapshot) => {
+            const data = snapshot.val() || {};
+            products = data;
+            isReady = true;
+            setOnline(true);
+            renderProducts();
+        }, (error) => {
+            console.error('Lỗi Firebase:', error);
+            setOnline(false);
+            toast('Không kết nối được server. Kiểm tra mạng!');
+        });
+
+        // ======================================================
+        // UI HELPERS
+        // ======================================================
+        function setOnline(online) {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            if (online) {
+                dot.className = 'status-dot online';
+                text.textContent = 'Đã kết nối';
+            } else {
+                dot.className = 'status-dot offline';
+                text.textContent = 'Mất kết nối';
+            }
+        }
+
+        function toast(msg, duration = 2500) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), duration);
+        }
+
+        function formatPrice(price) {
+            return new Intl.NumberFormat('vi-VN').format(price) + ' đ';
+        }
+
+        // ======================================================
+        // RENDER
+        // ======================================================
+        function getProductList() {
+            return Object.keys(products).map(id => ({
+                id,
+                ...products[id]
+            })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        }
+
+        function renderProducts(list) {
+            if (!list) list = getProductList();
+
             const tbody = document.getElementById('productTable');
             tbody.innerHTML = '';
+
+            if (!isReady) {
+                tbody.innerHTML = `<tr><td colspan="4" class="loading">⏳ Đang tải dữ liệu từ server...</td></tr>`;
+                return;
+            }
 
             if (list.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" class="empty">Chưa có sản phẩm nào. Hãy thêm sản phẩm đầu tiên!</td></tr>`;
             } else {
                 list.forEach((product, index) => {
-                    // Tìm index thật trong mảng gốc (khi đang search)
-                    const realIndex = products.findIndex(p => p.id === product.id);
-                    
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${index + 1}</td>
-                        <td>${product.name}</td>
+                        <td>${escapeHtml(product.name)}</td>
                         <td class="price">${formatPrice(product.price)}</td>
                         <td class="actions">
-                            <button class="btn-edit" onclick="editProduct(${realIndex})">Sửa</button>
-                            <button class="btn-delete" onclick="deleteProduct(${realIndex})">Xóa</button>
+                            <button class="btn-edit" onclick="editProduct('${product.id}')">Sửa</button>
+                            <button class="btn-delete" onclick="deleteProduct('${product.id}')">Xóa</button>
                         </td>
                     `;
                     tbody.appendChild(row);
                 });
             }
 
-            document.getElementById('stats').textContent = `Tổng số sản phẩm: ${products.length}`;
+            document.getElementById('stats').textContent = `Tổng số sản phẩm: ${getProductList().length}`;
         }
 
-        // Định dạng giá tiền
-        function formatPrice(price) {
-            return new Intl.NumberFormat('vi-VN').format(price) + ' đ';
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
         }
 
-        // Thêm sản phẩm
+        // ======================================================
+        // CRUD
+        // ======================================================
         function addProduct() {
+            if (!isReady) {
+                toast('Chưa kết nối server, vui lòng đợi...');
+                return;
+            }
+
             const name = document.getElementById('productName').value.trim();
             const price = document.getElementById('productPrice').value;
 
             if (!name) {
-                alert('Vui lòng nhập tên sản phẩm!');
+                toast('Vui lòng nhập tên sản phẩm!');
                 return;
             }
             if (!price || price < 0) {
-                alert('Vui lòng nhập giá hợp lệ!');
+                toast('Vui lòng nhập giá hợp lệ!');
                 return;
             }
 
-            products.push({
-                id: Date.now(), // id duy nhất
+            const newRef = productsRef.push();
+            newRef.set({
                 name: name,
-                price: Number(price)
+                price: Number(price),
+                createdAt: Date.now()
+            }).then(() => {
+                toast('✅ Đã thêm sản phẩm!');
+                clearForm();
+            }).catch(err => {
+                console.error(err);
+                toast('Lỗi khi thêm sản phẩm');
             });
-
-            saveAndRender();
-            clearForm();
         }
 
-        // Sửa sản phẩm
-        function editProduct(index) {
-            editIndex = index;
-            const product = products[index];
+        function editProduct(id) {
+            const product = products[id];
+            if (!product) return;
 
+            editId = id;
             document.getElementById('productName').value = product.name;
             document.getElementById('productPrice').value = product.price;
 
@@ -362,26 +515,31 @@
             document.getElementById('btnCancel').style.display = 'inline-block';
         }
 
-        // Cập nhật sản phẩm
         function updateProduct() {
+            if (!editId) return;
+
             const name = document.getElementById('productName').value.trim();
             const price = document.getElementById('productPrice').value;
 
             if (!name || !price || price < 0) {
-                alert('Vui lòng nhập đầy đủ thông tin hợp lệ!');
+                toast('Vui lòng nhập đầy đủ thông tin hợp lệ!');
                 return;
             }
 
-            products[editIndex].name = name;
-            products[editIndex].price = Number(price);
-
-            saveAndRender();
-            cancelEdit();
+            productsRef.child(editId).update({
+                name: name,
+                price: Number(price)
+            }).then(() => {
+                toast('✅ Đã cập nhật sản phẩm!');
+                cancelEdit();
+            }).catch(err => {
+                console.error(err);
+                toast('Lỗi khi cập nhật');
+            });
         }
 
-        // Hủy sửa
         function cancelEdit() {
-            editIndex = -1;
+            editId = null;
             clearForm();
             document.getElementById('formTitle').textContent = '➕ Thêm sản phẩm mới';
             document.getElementById('btnAdd').style.display = 'inline-block';
@@ -389,58 +547,57 @@
             document.getElementById('btnCancel').style.display = 'none';
         }
 
-        // Xóa sản phẩm
-        function deleteProduct(index) {
-            if (confirm(`Bạn có chắc muốn xóa "${products[index].name}" không?`)) {
-                products.splice(index, 1);
-                saveAndRender();
-            }
+        function deleteProduct(id) {
+            const product = products[id];
+            if (!product) return;
+
+            if (!confirm(`Bạn có chắc muốn xóa "${product.name}" không?`)) return;
+
+            productsRef.child(id).remove()
+                .then(() => toast('🗑️ Đã xóa sản phẩm'))
+                .catch(err => {
+                    console.error(err);
+                    toast('Lỗi khi xóa');
+                });
         }
 
-        // Tìm kiếm
+        // ======================================================
+        // TÌM KIẾM
+        // ======================================================
         function searchProducts() {
             const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
-            
+            const list = getProductList();
+
             if (!keyword) {
-                renderProducts();
+                renderProducts(list);
                 return;
             }
 
-            const filtered = products.filter(p => 
+            const filtered = list.filter(p =>
                 p.name.toLowerCase().includes(keyword)
             );
             renderProducts(filtered);
         }
 
-        // Lưu vào localStorage và render lại
-        function saveAndRender() {
-            localStorage.setItem('products', JSON.stringify(products));
-            renderProducts();
-            // Giữ nguyên từ khóa tìm kiếm nếu đang search
-            const keyword = document.getElementById('searchInput').value;
-            if (keyword) searchProducts();
-        }
-
-        // Xóa form
+        // ======================================================
+        // FORM HELPERS
+        // ======================================================
         function clearForm() {
             document.getElementById('productName').value = '';
             document.getElementById('productPrice').value = '';
             document.getElementById('productName').focus();
         }
 
-        // Cho phép nhấn Enter để thêm
+        // Enter để thêm / cập nhật
         document.getElementById('productName').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') document.getElementById('productPrice').focus();
         });
         document.getElementById('productPrice').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                if (editIndex === -1) addProduct();
-                else updateProduct();
+                if (editId) updateProduct();
+                else addProduct();
             }
         });
-
-        // Hiển thị khi mở trang
-        renderProducts();
     </script>
 </body>
 </html>
