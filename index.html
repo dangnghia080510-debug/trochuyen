@@ -1,999 +1,446 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>LitMatch - Kết bạn bốn phương</title>
-<style>
-:root {
-  --bg: #0f0c1a;
-  --panel: #1a1428;
-  --border: #3a2a5a;
-  --pink: #ff6b9d;
-  --purple: #a855f7;
-  --gold: #f0c030;
-  --green: #22c55e;
-  --red: #ef4444;
-  --text: #f5f0ff;
-  --muted: #a89bbf;
-  --cream: #f8f0ff;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-html, body { width:100%; height:100%; font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); overflow:hidden; }
-button { cursor:pointer; font-family:inherit; border:none; }
-input, select, textarea { font-family:inherit; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý sản phẩm - Cửa hàng nhà tôi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-#conn {
-  position:fixed; inset:0; background:#0f0c1a; z-index:9999;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
-  color:var(--pink); font-weight:700; font-size:16px;
-}
-.spinner { font-size:48px; animation:spin 1.2s linear infinite; }
-@keyframes spin { to { transform:rotate(360deg); } }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-.toast {
-  position:fixed; top:16px; right:16px; background:#1a1428; border:1px solid var(--pink);
-  border-radius:12px; padding:12px 18px; z-index:9999; font-size:13px; color:var(--pink);
-  transform:translateX(120%); transition:.3s; max-width:280px; box-shadow:0 8px 24px #0008;
-}
-.toast.show { transform:none; }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
 
-/* ===== LOBBY ===== */
-#lobby {
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  min-height:100vh; padding:20px; background:radial-gradient(ellipse at 50% 20%,#2a1a4a 0%,#0f0c1a 70%);
-  overflow-y:auto;
-}
-.logo { font-size:64px; filter:drop-shadow(0 4px 16px #ff6b9d66); }
-.logo-title { font-size:32px; font-weight:900; background:linear-gradient(135deg,#ff6b9d,#a855f7); -webkit-background-clip:text; -webkit-text-fill-color:transparent; letter-spacing:1px; }
-.logo-sub { font-size:13px; color:var(--muted); margin:8px 0 24px; text-align:center; }
+        header {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
 
-.card {
-  background:linear-gradient(160deg,#1e1630,#14101f); border:1px solid var(--border);
-  border-radius:20px; padding:28px; width:100%; max-width:400px;
-  box-shadow:0 24px 60px #000a, inset 0 1px 0 #ffffff08;
-}
-.card h2 { font-size:17px; color:var(--pink); text-align:center; margin-bottom:16px; }
-.inp {
-  width:100%; padding:12px 14px; background:#0c0a14; border:1px solid var(--border);
-  border-radius:12px; color:var(--text); font-size:15px; outline:none; margin-bottom:10px;
-}
-.inp:focus { border-color:var(--pink); box-shadow:0 0 0 3px #ff6b9d33; }
-.btn {
-  padding:13px 16px; border-radius:12px; font-size:14px; font-weight:700; width:100%; margin-bottom:8px; transition:.15s;
-}
-.btn:active { transform:scale(.97); }
-.btn-pink { background:linear-gradient(135deg,#ff6b9d,#e91e63); color:#fff; box-shadow:0 4px 16px #ff6b9d44; }
-.btn-purple { background:linear-gradient(135deg,#a855f7,#7c3aed); color:#fff; }
-.btn-gold { background:linear-gradient(135deg,#f0c030,#d4a017); color:#1a0a00; }
-.btn-gray { background:#2a2038; color:var(--muted); font-size:13px; }
-.btn-red { background:var(--red); color:#fff; }
-.btn-sm { padding:7px 14px; font-size:12px; width:auto; border-radius:10px; }
-.tab-row { display:flex; gap:8px; margin-bottom:14px; }
-.tab-btn {
-  flex:1; padding:10px; border:1px solid var(--border); border-radius:12px;
-  background:none; color:var(--muted); font-size:13px; font-weight:600;
-}
-.tab-btn.active { background:var(--pink); border-color:#ff6b9d; color:#fff; }
-.err { color:#ef4444; font-size:13px; margin:-4px 0 10px; padding:8px; background:#2a1018; border-radius:8px; display:none; }
-.user-tag {
-  display:inline-flex; align-items:center; gap:6px; background:#0c0a14;
-  padding:6px 14px; border-radius:20px; font-size:13px; font-weight:600; border:1px solid var(--border);
-}
-.coin-badge {
-  display:inline-flex; align-items:center; gap:5px; background:#2a2038;
-  border:1px solid var(--gold); border-radius:20px; padding:5px 14px; font-size:13px; font-weight:700; color:var(--gold);
-}
-.vip-badge {
-  display:inline-flex; align-items:center; gap:4px; background:linear-gradient(135deg,#f0c030,#ff6b9d);
-  color:#1a0a00; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:800;
-}
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
 
-/* ===== MAIN APP ===== */
-#app { display:none; height:100vh; flex-direction:column; }
-#app.show { display:flex; }
+        header p {
+            opacity: 0.9;
+            font-size: 15px;
+        }
 
-.header {
-  background:linear-gradient(180deg,#1e1630,#14101f); border-bottom:1px solid var(--border);
-  padding:10px 16px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
-}
-.header-left { display:flex; align-items:center; gap:10px; }
-.header-title { font-size:16px; font-weight:800; background:linear-gradient(135deg,#ff6b9d,#a855f7); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-.header-right { display:flex; align-items:center; gap:8px; }
+        .content {
+            padding: 30px;
+        }
 
-.nav {
-  display:flex; background:#14101f; border-top:1px solid var(--border); flex-shrink:0;
-}
-.nav-btn {
-  flex:1; padding:12px 4px; background:none; color:var(--muted); font-size:11px; font-weight:600;
-  display:flex; flex-direction:column; align-items:center; gap:3px; transition:.15s;
-}
-.nav-btn.active { color:var(--pink); }
-.nav-btn .ico { font-size:22px; }
+        /* Form thêm sản phẩm */
+        .form-section {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid #e2e8f0;
+        }
 
-.content { flex:1; overflow-y:auto; padding:12px; background:radial-gradient(ellipse at center,#1a1230 0%,#0f0c1a 100%); }
+        .form-section h2 {
+            font-size: 18px;
+            color: #1e293b;
+            margin-bottom: 15px;
+        }
 
-/* Soul Game */
-.soul-card {
-  background:linear-gradient(160deg,#1e1630,#14101f); border:1px solid var(--border);
-  border-radius:18px; padding:20px; margin-bottom:14px; text-align:center;
-}
-.soul-avatar {
-  width:90px; height:90px; border-radius:50%; background:linear-gradient(135deg,#ff6b9d,#a855f7);
-  display:flex; align-items:center; justify-content:center; font-size:42px; margin:0 auto 12px;
-  box-shadow:0 8px 24px #ff6b9d44; border:3px solid #fff3;
-}
-.match-btns { display:flex; gap:12px; justify-content:center; margin-top:16px; }
-.match-btn {
-  width:64px; height:64px; border-radius:50%; font-size:28px; display:flex; align-items:center; justify-content:center;
-  box-shadow:0 6px 16px #0006;
-}
-.match-btn.pass { background:#2a2038; color:#fff; }
-.match-btn.like { background:linear-gradient(135deg,#ff6b9d,#e91e63); color:#fff; }
+        .form-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
 
-/* Chat */
-.chat-container { display:flex; flex-direction:column; height:100%; }
-.chat-msgs { flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:8px; }
-.chat-bubble {
-  max-width:78%; padding:10px 14px; border-radius:16px; font-size:14px; line-height:1.4;
-}
-.chat-bubble.me { align-self:flex-end; background:linear-gradient(135deg,#ff6b9d,#e91e63); color:#fff; border-bottom-right-radius:4px; }
-.chat-bubble.them { align-self:flex-start; background:#2a2038; border-bottom-left-radius:4px; }
-.chat-input-row { display:flex; gap:8px; padding:10px; background:#14101f; border-top:1px solid var(--border); }
-.chat-input-row input { flex:1; padding:12px 14px; background:#0c0a14; border:1px solid var(--border); border-radius:24px; color:var(--text); font-size:14px; outline:none; }
-.chat-input-row button { padding:12px 18px; background:var(--pink); border-radius:24px; color:#fff; font-weight:700; }
+        input[type="text"],
+        input[type="number"] {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.2s;
+        }
 
-/* Party Room */
-.room-list { display:flex; flex-direction:column; gap:10px; }
-.room-item {
-  background:linear-gradient(160deg,#1e1630,#14101f); border:1px solid var(--border);
-  border-radius:16px; padding:14px 16px; display:flex; justify-content:space-between; align-items:center;
-}
-.room-item .name { font-weight:700; color:var(--pink); font-size:15px; }
-.room-item .meta { font-size:12px; color:var(--muted); margin-top:3px; }
-.vip-enter {
-  position:fixed; inset:0; background:#000c; z-index:800; display:flex; align-items:center; justify-content:center;
-  flex-direction:column; gap:12px; animation:fadeIn .4s;
-}
-@keyframes fadeIn { from{opacity:0} to{opacity:1} }
-.vip-enter .big { font-size:64px; animation:bounce 1s infinite; }
-@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-.vip-enter .text { font-size:20px; font-weight:800; background:linear-gradient(135deg,#f0c030,#ff6b9d); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        input:focus {
+            border-color: #6366f1;
+        }
 
-/* Feed */
-.feed-post {
-  background:linear-gradient(160deg,#1e1630,#14101f); border:1px solid var(--border);
-  border-radius:16px; padding:14px; margin-bottom:12px;
-}
-.feed-post .author { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-.feed-post .av { font-size:28px; }
-.feed-post .name { font-weight:700; color:var(--pink); font-size:14px; }
-.feed-post .time { font-size:11px; color:var(--muted); }
-.feed-post .content { font-size:14px; line-height:1.5; margin:8px 0; }
-.feed-actions { display:flex; gap:16px; font-size:13px; color:var(--muted); }
+        button {
+            padding: 12px 22px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
 
-/* Profile */
-.profile-card {
-  background:linear-gradient(160deg,#1e1630,#14101f); border:1px solid var(--border);
-  border-radius:20px; padding:24px; text-align:center; margin-bottom:16px;
-}
-.profile-av {
-  width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg,#ff6b9d,#a855f7);
-  display:flex; align-items:center; justify-content:center; font-size:48px; margin:0 auto 12px;
-  border:4px solid #fff2; box-shadow:0 8px 24px #ff6b9d44;
-}
-.profile-name { font-size:20px; font-weight:800; color:var(--pink); }
-.profile-stats { display:flex; justify-content:center; gap:24px; margin-top:16px; }
-.profile-stat { text-align:center; }
-.profile-stat .num { font-size:18px; font-weight:800; color:var(--gold); }
-.profile-stat .lbl { font-size:11px; color:var(--muted); }
+        .btn-add {
+            background: #4f46e5;
+            color: white;
+        }
 
-/* Modal */
-.modal { display:none; position:fixed; inset:0; background:#000b; z-index:500; align-items:center; justify-content:center; padding:16px; }
-.modal.show { display:flex; }
-.modal-box {
-  background:linear-gradient(160deg,#1e1630,#14101f); border:1px solid var(--pink);
-  border-radius:18px; padding:22px; max-width:360px; width:100%; text-align:center;
-  box-shadow:0 20px 50px #000a;
-}
-.modal-box h3 { color:var(--pink); margin-bottom:10px; font-size:17px; }
-.modal-box p { color:var(--muted); font-size:13px; margin-bottom:14px; line-height:1.45; }
-.modal-actions { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+        .btn-add:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+        }
 
-/* Admin */
-#adminPanel { display:none; position:fixed; inset:0; background:#000a; z-index:600; align-items:center; justify-content:center; padding:12px; }
-#adminPanel.show { display:flex; }
-.admin-card {
-  background:linear-gradient(160deg,#1e1630,#14101f); border:1px solid var(--gold);
-  border-radius:18px; padding:22px; width:100%; max-width:380px; max-height:90vh; overflow-y:auto;
-}
-.admin-card h3 { color:var(--gold); text-align:center; margin-bottom:12px; }
-.user-row {
-  display:flex; align-items:center; justify-content:space-between; padding:8px 10px;
-  background:#0c0a14; border-radius:10px; margin-bottom:6px; font-size:13px; cursor:pointer;
-}
-.user-row.selected { border-left:3px solid var(--gold); }
+        .btn-update {
+            background: #059669;
+            color: white;
+            display: none;
+        }
 
-.avatar-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:12px 0; }
-.avatar-opt {
-  width:56px; height:56px; border-radius:50%; background:#2a2038; display:flex; align-items:center; justify-content:center;
-  font-size:28px; cursor:pointer; border:2px solid transparent; margin:0 auto;
-}
-.avatar-opt.selected { border-color:var(--pink); background:#3a2a5a; }
-</style>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+        .btn-update:hover {
+            background: #047857;
+        }
+
+        .btn-cancel {
+            background: #94a3b8;
+            color: white;
+            display: none;
+        }
+
+        /* Thanh tìm kiếm */
+        .search-box {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 20px 14px 45px;
+            border: 2px solid #e2e8f0;
+            border-radius: 50px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .search-box input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 18px;
+        }
+
+        /* Bảng sản phẩm */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f1f5f9;
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #334155;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-top: 1px solid #e2e8f0;
+            color: #1e293b;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .price {
+            font-weight: 700;
+            color: #059669;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-edit {
+            background: #3b82f6;
+            color: white;
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .btn-edit:hover {
+            background: #2563eb;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+            font-size: 16px;
+        }
+
+        .stats {
+            margin-top: 20px;
+            text-align: right;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-<div id="conn"><div class="spinner">💫</div><div id="connMsg">Đang kết nối LitMatch...</div></div>
-<div class="toast" id="toast"></div>
+    <div class="container">
+        <header>
+            <h1>📦 Quản lý sản phẩm</h1>
+            <p>Nhập tên & giá → Tìm kiếm nhanh khi bán hàng</p>
+        </header>
 
-<!-- LOBBY -->
-<div id="lobby">
-  <div class="logo">💫</div>
-  <div class="logo-title">LitMatch</div>
-  <div class="logo-sub">Kết bạn bốn phương · Chat ẩn danh · Party Room · VIP</div>
-  <div class="card" id="authCard">
-    <div id="authSection">
-      <div class="tab-row">
-        <button class="tab-btn active" onclick="switchAuth('login')">Đăng nhập</button>
-        <button class="tab-btn" onclick="switchAuth('register')">Đăng ký</button>
-      </div>
-      <div id="authErr" class="err"></div>
-      <input class="inp" id="authName" placeholder="Tên hiển thị (đăng ký)" style="display:none"/>
-      <input class="inp" id="authUser" placeholder="Tên đăng nhập"/>
-      <input class="inp" id="authPass" type="password" placeholder="Mật khẩu"/>
-      <button class="btn btn-pink" id="authBtn" onclick="doAuth()">Đăng nhập</button>
-    </div>
-    <div id="mainMenu" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div id="myTag" class="user-tag">👤</div>
-        <div id="myCoin" class="coin-badge">💎 0</div>
-      </div>
-      <div id="vipTag" style="text-align:center;margin-bottom:12px"></div>
-      <h2>🎮 Menu chính</h2>
-      <button class="btn btn-pink" onclick="goTab('soul')">💕 Soul Game - Kết bạn</button>
-      <button class="btn btn-purple" onclick="goTab('party')">🎉 Party Room</button>
-      <button class="btn btn-gray" onclick="goTab('feed')">📷 Feed</button>
-      <button class="btn btn-gray" onclick="goTab('profile')">👤 Hồ sơ & VIP</button>
-      <div id="adminBtnWrap" style="display:none;margin-top:8px">
-        <button class="btn btn-sm btn-red" onclick="showAdmin()">⚙️ Admin</button>
-      </div>
-      <button class="btn btn-gray btn-sm" style="margin-top:12px" onclick="logout()">Đăng xuất</button>
-    </div>
-  </div>
-</div>
+        <div class="content">
+            <!-- Form thêm / sửa -->
+            <div class="form-section">
+                <h2 id="formTitle">➕ Thêm sản phẩm mới</h2>
+                <div class="form-row">
+                    <input type="text" id="productName" placeholder="Tên sản phẩm (ví dụ: Nước ngọt Coca)">
+                    <input type="number" id="productPrice" placeholder="Giá bán (VNĐ)" min="0">
+                    <button class="btn-add" id="btnAdd" onclick="addProduct()">Thêm sản phẩm</button>
+                    <button class="btn-update" id="btnUpdate" onclick="updateProduct()">Cập nhật</button>
+                    <button class="btn-cancel" id="btnCancel" onclick="cancelEdit()">Hủy</button>
+                </div>
+            </div>
 
-<!-- APP -->
-<div id="app">
-  <div class="header">
-    <div class="header-left">
-      <div class="header-title">LitMatch</div>
-    </div>
-    <div class="header-right">
-      <div class="coin-badge" id="appCoin">💎 0</div>
-      <div id="appVip"></div>
-    </div>
-  </div>
+            <!-- Thanh tìm kiếm -->
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Tìm kiếm sản phẩm theo tên..." oninput="searchProducts()">
+            </div>
 
-  <div class="content" id="content"></div>
+            <!-- Bảng danh sách -->
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px">STT</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Giá bán</th>
+                            <th style="width: 150px">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productTable">
+                        <!-- Dữ liệu sẽ được thêm bằng JavaScript -->
+                    </tbody>
+                </table>
+            </div>
 
-  <div class="nav">
-    <button class="nav-btn active" data-tab="soul" onclick="goTab('soul')"><span class="ico">💕</span>Soul</button>
-    <button class="nav-btn" data-tab="party" onclick="goTab('party')"><span class="ico">🎉</span>Party</button>
-    <button class="nav-btn" data-tab="chat" onclick="goTab('chat')"><span class="ico">💬</span>Chat</button>
-    <button class="nav-btn" data-tab="feed" onclick="goTab('feed')"><span class="ico">📷</span>Feed</button>
-    <button class="nav-btn" data-tab="profile" onclick="goTab('profile')"><span class="ico">👤</span>Tôi</button>
-  </div>
-</div>
-
-<!-- VIP Enter Effect -->
-<div id="vipEnter" class="vip-enter" style="display:none">
-  <div class="big">👑</div>
-  <div class="text" id="vipEnterText">VIP đã vào phòng!</div>
-</div>
-
-<!-- Modal -->
-<div class="modal" id="modal"><div class="modal-box">
-  <h3 id="modalTitle">—</h3>
-  <p id="modalMsg"></p>
-  <div class="modal-actions" id="modalBtns"></div>
-</div></div>
-
-<!-- Admin -->
-<div id="adminPanel"><div class="admin-card">
-  <h3>⚙️ Bảng Admin LitMatch</h3>
-  <div id="adminCoinInfo" style="text-align:center;color:var(--gold);font-weight:700;margin-bottom:12px">💎 Admin: 0</div>
-  <div id="adminUserList" style="max-height:180px;overflow-y:auto;margin-bottom:12px"></div>
-  <div style="display:flex;gap:6px;margin-bottom:8px">
-    <input class="inp" id="adminAmt" type="number" placeholder="Số kim cương" style="margin:0;flex:1"/>
-    <button class="btn btn-sm btn-gold" style="margin:0" onclick="adminGive()">Cấp</button>
-    <button class="btn btn-sm btn-red" style="margin:0" onclick="adminDeduct()">Trừ</button>
-  </div>
-  <button class="btn btn-sm btn-purple" onclick="adminSetVip()">⭐ Set VIP</button>
-  <button class="btn btn-sm btn-red" onclick="adminBan()">🚫 Ban user</button>
-  <button class="btn btn-sm btn-gold" onclick="adminAddSelf()">+ Kim cương Admin</button>
-  <button class="btn btn-sm btn-red" onclick="adminCollectAll()">📥 Thu hết kim cương</button>
-  <button class="btn btn-gray btn-sm" style="margin-top:12px" onclick="closeAdmin()">Đóng</button>
-</div></div>
-
-<script>
-const ADMIN_USER = 'admin', ADMIN_PASS = 'admin123';
-const START_DIAMONDS = 500;
-const firebaseConfig = {
-  apiKey: "AIzaSyCyapf8zLqz31Jc7gMUweXrZk1ReP07dv0",
-  databaseURL: "https://nhantin-4ee06-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "nhantin-4ee06"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-const AVATARS = ['🦊','🐱','🐶','🐼','🦄','🐰','🐻','🐯','🦁','🐸','🐵','🐧','🦋','🌸','⭐','🌙'];
-const TOKEN_COLORS = ['#ff6b9d','#a855f7','#22c55e','#f0c030','#3b82f6','#ef4444'];
-
-let me = null;
-let localUsers = null;
-let localRooms = null;
-let localFeed = null;
-let localMatches = null;
-let firebaseReady = false;
-let currentTab = 'soul';
-let currentMatch = null;
-let currentRoom = null;
-let authMode = 'login';
-let adminSelected = null;
-let chatPartner = null;
-
-function fmt(n){ return Math.floor(Number(n)||0).toLocaleString('vi-VN'); }
-function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function toast(msg, dur=2500){
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), dur);
-}
-function showErr(id, msg){
-  const el = document.getElementById(id);
-  el.textContent = msg; el.style.display = 'block';
-  setTimeout(()=>el.style.display='none', 3000);
-}
-function genId(){ return String(Math.floor(100000 + Math.random()*900000)); }
-
-function getUsers(){ return localUsers || {}; }
-function saveUsers(u){ localUsers = u; db.ref('lit_users').set(u).catch(e=>console.error(e)); }
-function getRooms(){ return localRooms || {}; }
-function getRoom(id){ return (localRooms||{})[id] || null; }
-function updateRoom(id, room){
-  if(!localRooms) localRooms = {};
-  localRooms[id] = room;
-  db.ref('lit_rooms/'+id).set(room).catch(e=>console.error(e));
-}
-function removeRoom(id){
-  if(localRooms) delete localRooms[id];
-  db.ref('lit_rooms/'+id).remove().catch(e=>console.error(e));
-}
-
-// ===== Firebase listeners =====
-db.ref('lit_users').on('value', snap => {
-  const first = localUsers === null;
-  localUsers = snap.val() || {};
-  if(first){
-    if(!localUsers[ADMIN_USER]){
-      localUsers[ADMIN_USER] = {
-        username: ADMIN_USER, password: ADMIN_PASS, displayName: '👑 Admin',
-        diamonds: 999999999, vip: 99, isAdmin: true, avatar: '👑', friends: {}, banned: false
-      };
-      saveUsers(localUsers);
-    }
-    checkReady();
-  }
-  refreshUI();
-}, err => { document.getElementById('connMsg').textContent = 'Lỗi kết nối Firebase.'; });
-
-db.ref('lit_rooms').on('value', snap => {
-  const first = localRooms === null;
-  localRooms = snap.val() || {};
-  if(first) checkReady();
-  if(currentTab === 'party') renderParty();
-  if(currentRoom) renderRoomChat();
-});
-
-db.ref('lit_feed').on('value', snap => {
-  localFeed = snap.val() || {};
-  if(currentTab === 'feed') renderFeed();
-});
-
-db.ref('lit_matches').on('value', snap => {
-  localMatches = snap.val() || {};
-});
-
-function checkReady(){
-  if(localUsers !== null && localRooms !== null && !firebaseReady){
-    firebaseReady = true;
-    document.getElementById('conn').style.display = 'none';
-    tryAutoLogin();
-  }
-}
-
-const REMEMBER = 'lit_remember';
-function remember(u,p){ try{ localStorage.setItem(REMEMBER, JSON.stringify({u,p})); }catch(e){} }
-function clearRemember(){ try{ localStorage.removeItem(REMEMBER); }catch(e){} }
-function tryAutoLogin(){
-  let s = null;
-  try{ s = JSON.parse(localStorage.getItem(REMEMBER)); }catch(e){}
-  if(!s || !s.u) return;
-  const u = getUsers()[s.u];
-  if(u && u.password === s.p && !u.banned){ me = u; enterApp(); }
-}
-
-function switchAuth(m){
-  authMode = m;
-  document.querySelectorAll('.tab-btn').forEach((b,i)=> b.classList.toggle('active', i === (m==='login'?0:1)));
-  document.getElementById('authName').style.display = m==='register' ? 'block' : 'none';
-  document.getElementById('authBtn').textContent = m==='login' ? 'Đăng nhập' : 'Đăng ký';
-}
-
-function doAuth(){
-  if(!firebaseReady){ toast('Đang kết nối...'); return; }
-  const user = document.getElementById('authUser').value.trim();
-  const pass = document.getElementById('authPass').value;
-  const name = document.getElementById('authName').value.trim();
-  if(!user || !pass){ showErr('authErr','Nhập đủ thông tin'); return; }
-  const users = getUsers();
-  if(authMode === 'register'){
-    if(!name){ showErr('authErr','Nhập tên hiển thị'); return; }
-    if(users[user]){ showErr('authErr','Tên đã tồn tại'); return; }
-    users[user] = {
-      username: user, password: pass, displayName: name,
-      diamonds: START_DIAMONDS, vip: 0, isAdmin: false,
-      avatar: AVATARS[Math.floor(Math.random()*AVATARS.length)],
-      friends: {}, banned: false, created: Date.now()
-    };
-    saveUsers(users);
-    me = users[user];
-    remember(user, pass);
-    enterApp();
-    toast('Đăng ký thành công! +'+START_DIAMONDS+' 💎');
-  } else {
-    if(!users[user] || users[user].password !== pass){ showErr('authErr','Sai tài khoản/mật khẩu'); return; }
-    if(users[user].banned){ showErr('authErr','Tài khoản bị khóa'); return; }
-    me = users[user];
-    remember(user, pass);
-    enterApp();
-  }
-}
-
-function enterApp(){
-  document.getElementById('lobby').style.display = 'none';
-  document.getElementById('app').classList.add('show');
-  document.getElementById('app').style.display = 'flex';
-  refreshUI();
-  goTab('soul');
-}
-
-function refreshUI(){
-  if(!me) return;
-  const u = getUsers()[me.username];
-  if(u) me = u;
-  document.getElementById('myTag').textContent = (me.avatar||'👤') + ' ' + me.displayName;
-  document.getElementById('myCoin').textContent = '💎 ' + fmt(me.diamonds);
-  document.getElementById('appCoin').textContent = '💎 ' + fmt(me.diamonds);
-  const vipHtml = me.vip > 0 ? `<span class="vip-badge">⭐ VIP ${me.vip}</span>` : '';
-  document.getElementById('vipTag').innerHTML = vipHtml;
-  document.getElementById('appVip').innerHTML = vipHtml;
-  if(me.isAdmin) document.getElementById('adminBtnWrap').style.display = 'block';
-}
-
-function logout(){
-  me = null; currentMatch = null; currentRoom = null; chatPartner = null;
-  clearRemember();
-  document.getElementById('app').classList.remove('show');
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('lobby').style.display = 'flex';
-  document.getElementById('authSection').style.display = 'block';
-  document.getElementById('mainMenu').style.display = 'none';
-  document.getElementById('adminBtnWrap').style.display = 'none';
-  document.getElementById('authUser').value = '';
-  document.getElementById('authPass').value = '';
-}
-
-// ===== TABS =====
-function goTab(tab){
-  currentTab = tab;
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  const c = document.getElementById('content');
-  if(tab === 'soul') renderSoul();
-  else if(tab === 'party') renderParty();
-  else if(tab === 'chat') renderChatList();
-  else if(tab === 'feed') renderFeed();
-  else if(tab === 'profile') renderProfile();
-}
-
-// ===== SOUL GAME =====
-function renderSoul(){
-  const c = document.getElementById('content');
-  if(currentMatch){
-    renderMatchChat();
-    return;
-  }
-  // tìm người ngẫu nhiên chưa phải mình
-  const users = Object.values(getUsers()).filter(u => u.username !== me.username && !u.banned && !u.isAdmin);
-  if(users.length === 0){
-    c.innerHTML = `<div class="soul-card"><div style="font-size:48px;margin-bottom:12px">😢</div><p>Chưa có ai online. Hãy mời bạn bè đăng ký!</p></div>`;
-    return;
-  }
-  const target = users[Math.floor(Math.random()*users.length)];
-  c.innerHTML = `
-    <div class="soul-card">
-      <div style="font-size:13px;color:var(--muted);margin-bottom:8px">💕 Soul Game - Gặp người mới</div>
-      <div class="soul-avatar">${target.avatar||'👤'}</div>
-      <div style="font-size:18px;font-weight:800;color:var(--pink)">${esc(target.displayName)}</div>
-      <div style="font-size:12px;color:var(--muted);margin-top:4px">${target.vip>0?'⭐ VIP '+target.vip:'Người dùng thường'}</div>
-      <div class="match-btns">
-        <button class="match-btn pass" onclick="passMatch()">✕</button>
-        <button class="match-btn like" onclick="likeMatch('${target.username}')">♥</button>
-      </div>
-      <div style="margin-top:16px;font-size:12px;color:var(--muted)">Like để bắt đầu chat • Pass để gặp người khác</div>
-    </div>
-    <button class="btn btn-gray" style="margin-top:8px" onclick="renderSoul()">🔄 Đổi người khác</button>
-  `;
-}
-
-function passMatch(){ renderSoul(); }
-
-function likeMatch(username){
-  const users = getUsers();
-  const target = users[username];
-  if(!target) return;
-  // tạo match
-  const matchId = [me.username, username].sort().join('_');
-  if(!localMatches) localMatches = {};
-  if(!localMatches[matchId]){
-    localMatches[matchId] = {
-      users: [me.username, username],
-      messages: [],
-      created: Date.now()
-    };
-    db.ref('lit_matches/'+matchId).set(localMatches[matchId]);
-  }
-  currentMatch = matchId;
-  chatPartner = username;
-  // cộng friends
-  if(!me.friends) me.friends = {};
-  me.friends[username] = true;
-  users[me.username].friends = me.friends;
-  if(!target.friends) target.friends = {};
-  target.friends[me.username] = true;
-  saveUsers(users);
-  toast('Đã kết nối với '+target.displayName+'!');
-  renderMatchChat();
-}
-
-function renderMatchChat(){
-  const c = document.getElementById('content');
-  const match = (localMatches||{})[currentMatch];
-  if(!match){ currentMatch=null; renderSoul(); return; }
-  const partner = getUsers()[chatPartner] || {displayName: chatPartner, avatar:'👤'};
-  let msgsHtml = (match.messages||[]).map(m => {
-    const isMe = m.from === me.username;
-    return `<div class="chat-bubble ${isMe?'me':'them'}">${esc(m.text)}</div>`;
-  }).join('');
-  c.innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:8px">
-      <button class="btn btn-sm btn-gray" onclick="currentMatch=null;chatPartner=null;renderSoul()">←</button>
-      <div style="font-size:24px">${partner.avatar||'👤'}</div>
-      <div>
-        <div style="font-weight:700;color:var(--pink)">${esc(partner.displayName)}</div>
-        <div style="font-size:11px;color:var(--muted)">Soul Chat</div>
-      </div>
-    </div>
-    <div class="chat-msgs" id="matchMsgs" style="height:calc(100vh - 220px)">${msgsHtml||'<div style="text-align:center;color:var(--muted);padding:40px 0">Bắt đầu trò chuyện nào 💕</div>'}</div>
-    <div class="chat-input-row">
-      <input id="matchInp" placeholder="Nhắn gì đó..." onkeydown="if(event.key==='Enter')sendMatchMsg()"/>
-      <button onclick="sendMatchMsg()">Gửi</button>
-    </div>
-  `;
-  const box = document.getElementById('matchMsgs');
-  if(box) box.scrollTop = box.scrollHeight;
-}
-
-function sendMatchMsg(){
-  const inp = document.getElementById('matchInp');
-  const text = inp.value.trim();
-  if(!text || !currentMatch) return;
-  if(!localMatches[currentMatch].messages) localMatches[currentMatch].messages = [];
-  localMatches[currentMatch].messages.push({from: me.username, text, t: Date.now()});
-  if(localMatches[currentMatch].messages.length > 100) localMatches[currentMatch].messages = localMatches[currentMatch].messages.slice(-100);
-  db.ref('lit_matches/'+currentMatch).set(localMatches[currentMatch]);
-  inp.value = '';
-  renderMatchChat();
-}
-
-// ===== PARTY ROOM =====
-function renderParty(){
-  const c = document.getElementById('content');
-  if(currentRoom){
-    renderRoomInside();
-    return;
-  }
-  const rooms = Object.values(getRooms()).filter(r => r.players && r.players.length > 0);
-  let listHtml = rooms.length ? rooms.map(r => {
-    const full = r.players.length >= (r.max||8);
-    return `<div class="room-item">
-      <div>
-        <div class="name">${esc(r.name)} ${r.vipOnly?'👑':''}</div>
-        <div class="meta">${r.players.length}/${r.max||8} người · ${r.host===me.username?'Bạn là chủ':''}</div>
-      </div>
-      <button class="btn btn-sm ${full?'btn-gray':'btn-pink'}" onclick="joinParty('${r.id}')">${full?'Đầy':'Vào'}</button>
-    </div>`;
-  }).join('') : '<div style="text-align:center;color:var(--muted);padding:30px">Chưa có phòng nào. Hãy tạo phòng!</div>';
-
-  c.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <h3 style="color:var(--pink)">🎉 Party Room</h3>
-      <button class="btn btn-sm btn-pink" onclick="showCreateRoom()">+ Tạo phòng</button>
-    </div>
-    <div class="room-list">${listHtml}</div>
-  `;
-}
-
-function showCreateRoom(){
-  document.getElementById('modalTitle').textContent = 'Tạo Party Room';
-  document.getElementById('modalMsg').innerHTML = `
-    <input class="inp" id="newRoomName" placeholder="Tên phòng" style="margin-bottom:8px"/>
-    <select class="inp" id="newRoomMax">
-      <option value="4">4 người</option>
-      <option value="6" selected>6 người</option>
-      <option value="8">8 người</option>
-      <option value="12">12 người</option>
-    </select>
-  `;
-  document.getElementById('modalBtns').innerHTML = `
-    <button class="btn btn-pink" onclick="createParty()">Tạo</button>
-    <button class="btn btn-gray" onclick="closeModal()">Hủy</button>
-  `;
-  document.getElementById('modal').classList.add('show');
-}
-
-function createParty(){
-  const name = document.getElementById('newRoomName').value.trim() || (me.displayName + "'s Room");
-  const max = parseInt(document.getElementById('newRoomMax').value) || 6;
-  const id = genId();
-  const room = {
-    id, name, host: me.username, players: [me.username],
-    max, chat: [], created: Date.now(), vipOnly: false
-  };
-  updateRoom(id, room);
-  currentRoom = id;
-  closeModal();
-  // VIP enter effect
-  if(me.vip > 0) showVipEnter(me);
-  renderRoomInside();
-  toast('Đã tạo phòng!');
-}
-
-function joinParty(id){
-  const room = getRoom(id);
-  if(!room){ toast('Phòng không tồn tại'); return; }
-  if((room.players||[]).includes(me.username)){ currentRoom = id; renderRoomInside(); return; }
-  if(room.players.length >= (room.max||8)){ toast('Phòng đã đầy'); return; }
-  room.players.push(me.username);
-  updateRoom(id, room);
-  currentRoom = id;
-  if(me.vip > 0) showVipEnter(me);
-  else toast('Đã vào phòng!');
-  renderRoomInside();
-}
-
-function showVipEnter(user){
-  const el = document.getElementById('vipEnter');
-  document.getElementById('vipEnterText').textContent = `👑 ${user.displayName} (VIP ${user.vip}) đã vào phòng!`;
-  el.style.display = 'flex';
-  setTimeout(()=> el.style.display = 'none', 2800);
-}
-
-function renderRoomInside(){
-  const room = getRoom(currentRoom);
-  if(!room || !(room.players||[]).includes(me.username)){ currentRoom=null; renderParty(); return; }
-  const users = getUsers();
-  const playersHtml = (room.players||[]).map(p => {
-    const u = users[p] || {displayName:p, avatar:'👤', vip:0};
-    return `<div style="display:inline-flex;align-items:center;gap:4px;background:#2a2038;padding:4px 10px;border-radius:16px;font-size:12px;margin:2px">
-      ${u.avatar||'👤'} ${esc(u.displayName)} ${u.vip>0?'⭐':''} ${p===room.host?'👑':''}
-    </div>`;
-  }).join('');
-
-  const msgs = (room.chat||[]).slice(-50).map(m => {
-    const isMe = m.from === me.username;
-    return `<div class="chat-bubble ${isMe?'me':'them'}"><b style="font-size:11px">${esc(m.name)}</b><br>${esc(m.text)}</div>`;
-  }).join('');
-
-  document.getElementById('content').innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div>
-        <div style="font-weight:800;color:var(--pink)">${esc(room.name)}</div>
-        <div style="font-size:11px;color:var(--muted)">${room.players.length} người</div>
-      </div>
-      <button class="btn btn-sm btn-red" onclick="leaveParty()">Rời phòng</button>
-    </div>
-    <div style="margin-bottom:10px">${playersHtml}</div>
-    <div class="chat-msgs" id="roomMsgs" style="height:calc(100vh - 280px);background:#0c0a14;border-radius:12px;padding:10px">${msgs||'<div style="text-align:center;color:var(--muted);padding:30px">Chưa có tin nhắn</div>'}</div>
-    <div class="chat-input-row">
-      <input id="roomInp" placeholder="Nhắn trong phòng..." onkeydown="if(event.key==='Enter')sendRoomMsg()"/>
-      <button onclick="sendRoomMsg()">Gửi</button>
-    </div>
-  `;
-  const box = document.getElementById('roomMsgs');
-  if(box) box.scrollTop = box.scrollHeight;
-}
-
-function sendRoomMsg(){
-  const inp = document.getElementById('roomInp');
-  const text = inp.value.trim();
-  if(!text || !currentRoom) return;
-  const room = getRoom(currentRoom);
-  if(!room) return;
-  if(!room.chat) room.chat = [];
-  room.chat.push({from: me.username, name: me.displayName, text, t: Date.now()});
-  if(room.chat.length > 80) room.chat = room.chat.slice(-80);
-  updateRoom(currentRoom, room);
-  inp.value = '';
-  renderRoomInside();
-}
-
-function leaveParty(){
-  if(!currentRoom) return;
-  const room = getRoom(currentRoom);
-  if(room){
-    room.players = (room.players||[]).filter(p => p !== me.username);
-    if(room.players.length === 0) removeRoom(currentRoom);
-    else {
-      if(room.host === me.username) room.host = room.players[0];
-      updateRoom(currentRoom, room);
-    }
-  }
-  currentRoom = null;
-  renderParty();
-}
-
-// ===== CHAT LIST (bạn bè đã match) =====
-function renderChatList(){
-  const c = document.getElementById('content');
-  const friends = Object.keys(me.friends || {});
-  if(friends.length === 0){
-    c.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">
-      <div style="font-size:48px;margin-bottom:12px">💬</div>
-      Chưa có bạn bè. Hãy vào Soul Game để kết nối!
-    </div>`;
-    return;
-  }
-  const users = getUsers();
-  c.innerHTML = `<h3 style="color:var(--pink);margin-bottom:12px">💬 Bạn bè đã kết nối</h3>` +
-    friends.map(f => {
-      const u = users[f] || {displayName:f, avatar:'👤'};
-      return `<div class="room-item" onclick="openFriendChat('${f}')">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="font-size:28px">${u.avatar||'👤'}</div>
-          <div>
-            <div class="name">${esc(u.displayName)}</div>
-            <div class="meta">${u.vip>0?'⭐ VIP':''}</div>
-          </div>
+            <div class="stats" id="stats">Tổng số sản phẩm: 0</div>
         </div>
-        <span style="color:var(--pink)">›</span>
-      </div>`;
-    }).join('');
-}
-
-function openFriendChat(username){
-  const matchId = [me.username, username].sort().join('_');
-  currentMatch = matchId;
-  chatPartner = username;
-  if(!localMatches) localMatches = {};
-  if(!localMatches[matchId]){
-    localMatches[matchId] = {users:[me.username, username], messages:[], created:Date.now()};
-    db.ref('lit_matches/'+matchId).set(localMatches[matchId]);
-  }
-  goTab('soul'); // reuse match chat UI
-  renderMatchChat();
-}
-
-// ===== FEED =====
-function renderFeed(){
-  const c = document.getElementById('content');
-  const posts = Object.values(localFeed||{}).sort((a,b)=>(b.t||0)-(a.t||0)).slice(0,40);
-  const users = getUsers();
-  let html = `
-    <div style="margin-bottom:14px">
-      <textarea class="inp" id="feedInp" placeholder="Chia sẻ cảm xúc của bạn..." rows="2" style="resize:none"></textarea>
-      <button class="btn btn-pink" style="margin-top:6px" onclick="postFeed()">📷 Đăng</button>
     </div>
-  `;
-  if(!posts.length) html += `<div style="text-align:center;color:var(--muted);padding:30px">Chưa có bài đăng nào</div>`;
-  else html += posts.map(p => {
-    const u = users[p.user] || {displayName:p.user, avatar:'👤'};
-    const time = p.t ? new Date(p.t).toLocaleString('vi-VN') : '';
-    return `<div class="feed-post">
-      <div class="author">
-        <div class="av">${u.avatar||'👤'}</div>
-        <div>
-          <div class="name">${esc(u.displayName)} ${u.vip>0?'⭐':''}</div>
-          <div class="time">${time}</div>
-        </div>
-      </div>
-      <div class="content">${esc(p.text)}</div>
-      <div class="feed-actions">
-        <span>❤️ ${p.likes||0}</span>
-        <span onclick="likePost('${p.id}')" style="cursor:pointer">Thích</span>
-      </div>
-    </div>`;
-  }).join('');
-  c.innerHTML = html;
-}
 
-function postFeed(){
-  const text = document.getElementById('feedInp').value.trim();
-  if(!text) return;
-  const id = genId() + '_' + Date.now();
-  const post = {id, user: me.username, text, t: Date.now(), likes: 0};
-  db.ref('lit_feed/'+id).set(post);
-  document.getElementById('feedInp').value = '';
-  toast('Đã đăng!');
-}
+    <script>
+        // Lấy dữ liệu từ localStorage
+        let products = JSON.parse(localStorage.getItem('products')) || [];
+        let editIndex = -1; // -1 nghĩa là đang ở chế độ thêm mới
 
-function likePost(id){
-  const post = (localFeed||{})[id];
-  if(!post) return;
-  post.likes = (post.likes||0) + 1;
-  db.ref('lit_feed/'+id).update({likes: post.likes});
-}
+        // Hiển thị danh sách sản phẩm
+        function renderProducts(list = products) {
+            const tbody = document.getElementById('productTable');
+            tbody.innerHTML = '';
 
-// ===== PROFILE =====
-function renderProfile(){
-  const c = document.getElementById('content');
-  const friendCount = Object.keys(me.friends||{}).length;
-  c.innerHTML = `
-    <div class="profile-card">
-      <div class="profile-av">${me.avatar||'👤'}</div>
-      <div class="profile-name">${esc(me.displayName)}</div>
-      <div style="margin-top:6px">${me.vip>0?`<span class="vip-badge">⭐ VIP ${me.vip}</span>`:'Người dùng thường'}</div>
-      <div class="profile-stats">
-        <div class="profile-stat"><div class="num">${fmt(me.diamonds)}</div><div class="lbl">Kim cương</div></div>
-        <div class="profile-stat"><div class="num">${friendCount}</div><div class="lbl">Bạn bè</div></div>
-        <div class="profile-stat"><div class="num">${me.vip||0}</div><div class="lbl">VIP</div></div>
-      </div>
-    </div>
-    <h3 style="color:var(--pink);margin:16px 0 10px">Đổi Avatar</h3>
-    <div class="avatar-grid" id="avatarGrid">
-      ${AVATARS.map(a => `<div class="avatar-opt ${me.avatar===a?'selected':''}" onclick="changeAvatar('${a}')">${a}</div>`).join('')}
-    </div>
-    <h3 style="color:var(--pink);margin:20px 0 10px">Mua VIP</h3>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <button class="btn btn-gold" onclick="buyVip(1,200)">⭐ VIP 1 tháng - 200 💎</button>
-      <button class="btn btn-gold" onclick="buyVip(3,500)">⭐ VIP 3 tháng - 500 💎</button>
-      <button class="btn btn-gold" onclick="buyVip(12,1500)">👑 VIP 1 năm - 1500 💎</button>
-    </div>
-    <p style="font-size:12px;color:var(--muted);margin-top:10px;text-align:center">
-      VIP có hiệu ứng đặc biệt khi vào Party Room + badge đẹp
-    </p>
-  `;
-}
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="empty">Chưa có sản phẩm nào. Hãy thêm sản phẩm đầu tiên!</td></tr>`;
+            } else {
+                list.forEach((product, index) => {
+                    // Tìm index thật trong mảng gốc (khi đang search)
+                    const realIndex = products.findIndex(p => p.id === product.id);
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${product.name}</td>
+                        <td class="price">${formatPrice(product.price)}</td>
+                        <td class="actions">
+                            <button class="btn-edit" onclick="editProduct(${realIndex})">Sửa</button>
+                            <button class="btn-delete" onclick="deleteProduct(${realIndex})">Xóa</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
 
-function changeAvatar(av){
-  const users = getUsers();
-  users[me.username].avatar = av;
-  me.avatar = av;
-  saveUsers(users);
-  refreshUI();
-  renderProfile();
-  toast('Đã đổi avatar!');
-}
+            document.getElementById('stats').textContent = `Tổng số sản phẩm: ${products.length}`;
+        }
 
-function buyVip(months, cost){
-  if(me.diamonds < cost){ toast('Không đủ kim cương!'); return; }
-  const users = getUsers();
-  users[me.username].diamonds -= cost;
-  users[me.username].vip = (users[me.username].vip||0) + months;
-  me.diamonds = users[me.username].diamonds;
-  me.vip = users[me.username].vip;
-  saveUsers(users);
-  refreshUI();
-  renderProfile();
-  toast(`Đã mua VIP ${months} tháng!`);
-}
+        // Định dạng giá tiền
+        function formatPrice(price) {
+            return new Intl.NumberFormat('vi-VN').format(price) + ' đ';
+        }
 
-// ===== ADMIN =====
-function showAdmin(){
-  if(!me || !me.isAdmin){ toast('Không có quyền'); return; }
-  document.getElementById('adminPanel').classList.add('show');
-  renderAdminUsers();
-}
-function closeAdmin(){ document.getElementById('adminPanel').classList.remove('show'); }
-function renderAdminUsers(){
-  const users = getUsers();
-  const admin = users[ADMIN_USER];
-  document.getElementById('adminCoinInfo').textContent = '💎 Admin: ' + fmt(admin ? admin.diamonds : 0);
-  document.getElementById('adminUserList').innerHTML = Object.values(users)
-    .filter(u => u.username !== ADMIN_USER)
-    .map(u => `<div class="user-row" onclick="adminSelected='${u.username}';toast('Chọn: ${esc(u.displayName)}')">
-      <span>${u.avatar||'👤'} ${esc(u.displayName)} <small style="color:var(--muted)">(${u.username})</small> ${u.banned?'🚫':''}</span>
-      <span style="color:var(--gold);font-weight:700">${fmt(u.diamonds)} 💎</span>
-    </div>`).join('');
-}
-function adminGive(){
-  if(!adminSelected){ toast('Chọn người trước'); return; }
-  const amt = parseInt(document.getElementById('adminAmt').value) || 0;
-  if(amt <= 0){ toast('Nhập số kim cương'); return; }
-  const users = getUsers();
-  if(!users[adminSelected]) return;
-  users[adminSelected].diamonds = (users[adminSelected].diamonds||0) + amt;
-  saveUsers(users);
-  toast('Đã cấp ' + fmt(amt) + ' 💎');
-  renderAdminUsers();
-}
-function adminDeduct(){
-  if(!adminSelected){ toast('Chọn người trước'); return; }
-  const amt = parseInt(document.getElementById('adminAmt').value) || 0;
-  if(amt <= 0) return;
-  const users = getUsers();
-  if(!users[adminSelected]) return;
-  const take = Math.min(amt, users[adminSelected].diamonds||0);
-  users[adminSelected].diamonds -= take;
-  if(users[ADMIN_USER]) users[ADMIN_USER].diamonds = (users[ADMIN_USER].diamonds||0) + take;
-  saveUsers(users);
-  toast('Đã trừ ' + fmt(take) + ' 💎');
-  renderAdminUsers();
-}
-function adminSetVip(){
-  if(!adminSelected){ toast('Chọn người trước'); return; }
-  const amt = parseInt(document.getElementById('adminAmt').value) || 1;
-  const users = getUsers();
-  if(!users[adminSelected]) return;
-  users[adminSelected].vip = amt;
-  saveUsers(users);
-  toast('Đã set VIP ' + amt);
-  renderAdminUsers();
-}
-function adminBan(){
-  if(!adminSelected){ toast('Chọn người trước'); return; }
-  const users = getUsers();
-  if(!users[adminSelected]) return;
-  users[adminSelected].banned = !users[adminSelected].banned;
-  saveUsers(users);
-  toast(users[adminSelected].banned ? 'Đã ban' : 'Đã unban');
-  renderAdminUsers();
-}
-function adminAddSelf(){
-  const amt = parseInt(document.getElementById('adminAmt').value) || 0;
-  if(amt <= 0) return;
-  const users = getUsers();
-  if(users[ADMIN_USER]) users[ADMIN_USER].diamonds = (users[ADMIN_USER].diamonds||0) + amt;
-  saveUsers(users);
-  toast('Admin +' + fmt(amt));
-  renderAdminUsers();
-}
-function adminCollectAll(){
-  if(!confirm('Thu toàn bộ kim cương người chơi về Admin?')) return;
-  const users = getUsers();
-  let total = 0;
-  Object.keys(users).forEach(k => {
-    if(k === ADMIN_USER) return;
-    total += users[k].diamonds || 0;
-    users[k].diamonds = 0;
-  });
-  if(users[ADMIN_USER]) users[ADMIN_USER].diamonds = (users[ADMIN_USER].diamonds||0) + total;
-  saveUsers(users);
-  toast('Đã thu ' + fmt(total) + ' 💎');
-  renderAdminUsers();
-}
+        // Thêm sản phẩm
+        function addProduct() {
+            const name = document.getElementById('productName').value.trim();
+            const price = document.getElementById('productPrice').value;
 
-function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+            if (!name) {
+                alert('Vui lòng nhập tên sản phẩm!');
+                return;
+            }
+            if (!price || price < 0) {
+                alert('Vui lòng nhập giá hợp lệ!');
+                return;
+            }
 
-// Realtime update match chat
-db.ref('lit_matches').on('value', snap => {
-  localMatches = snap.val() || {};
-  if(currentMatch && currentTab === 'soul') renderMatchChat();
-});
+            products.push({
+                id: Date.now(), // id duy nhất
+                name: name,
+                price: Number(price)
+            });
 
-toast('LitMatch Online · Admin: admin / admin123');
-</script>
+            saveAndRender();
+            clearForm();
+        }
+
+        // Sửa sản phẩm
+        function editProduct(index) {
+            editIndex = index;
+            const product = products[index];
+
+            document.getElementById('productName').value = product.name;
+            document.getElementById('productPrice').value = product.price;
+
+            document.getElementById('formTitle').textContent = '✏️ Sửa sản phẩm';
+            document.getElementById('btnAdd').style.display = 'none';
+            document.getElementById('btnUpdate').style.display = 'inline-block';
+            document.getElementById('btnCancel').style.display = 'inline-block';
+        }
+
+        // Cập nhật sản phẩm
+        function updateProduct() {
+            const name = document.getElementById('productName').value.trim();
+            const price = document.getElementById('productPrice').value;
+
+            if (!name || !price || price < 0) {
+                alert('Vui lòng nhập đầy đủ thông tin hợp lệ!');
+                return;
+            }
+
+            products[editIndex].name = name;
+            products[editIndex].price = Number(price);
+
+            saveAndRender();
+            cancelEdit();
+        }
+
+        // Hủy sửa
+        function cancelEdit() {
+            editIndex = -1;
+            clearForm();
+            document.getElementById('formTitle').textContent = '➕ Thêm sản phẩm mới';
+            document.getElementById('btnAdd').style.display = 'inline-block';
+            document.getElementById('btnUpdate').style.display = 'none';
+            document.getElementById('btnCancel').style.display = 'none';
+        }
+
+        // Xóa sản phẩm
+        function deleteProduct(index) {
+            if (confirm(`Bạn có chắc muốn xóa "${products[index].name}" không?`)) {
+                products.splice(index, 1);
+                saveAndRender();
+            }
+        }
+
+        // Tìm kiếm
+        function searchProducts() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            if (!keyword) {
+                renderProducts();
+                return;
+            }
+
+            const filtered = products.filter(p => 
+                p.name.toLowerCase().includes(keyword)
+            );
+            renderProducts(filtered);
+        }
+
+        // Lưu vào localStorage và render lại
+        function saveAndRender() {
+            localStorage.setItem('products', JSON.stringify(products));
+            renderProducts();
+            // Giữ nguyên từ khóa tìm kiếm nếu đang search
+            const keyword = document.getElementById('searchInput').value;
+            if (keyword) searchProducts();
+        }
+
+        // Xóa form
+        function clearForm() {
+            document.getElementById('productName').value = '';
+            document.getElementById('productPrice').value = '';
+            document.getElementById('productName').focus();
+        }
+
+        // Cho phép nhấn Enter để thêm
+        document.getElementById('productName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') document.getElementById('productPrice').focus();
+        });
+        document.getElementById('productPrice').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (editIndex === -1) addProduct();
+                else updateProduct();
+            }
+        });
+
+        // Hiển thị khi mở trang
+        renderProducts();
+    </script>
 </body>
 </html>
