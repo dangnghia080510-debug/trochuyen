@@ -1,603 +1,722 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý sản phẩm Online</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Key Manager</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161b24;
+    --border: #252d3a;
+    --accent: #3b82f6;
+    --accent-dim: #1e3a5f;
+    --green: #22c55e;
+    --red: #ef4444;
+    --orange: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --font: 'Segoe UI', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
 
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header h1 { font-size: 18px; font-weight: 700; letter-spacing: .5px; }
+  header span { color: var(--accent); }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .header-right span { font-size: 12px; color: var(--muted); }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-            overflow: hidden;
-        }
+  /* LAYOUT */
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
 
-        header {
-            background: linear-gradient(90deg, #4f46e5, #7c3aed);
-            color: white;
-            padding: 25px 30px;
-            text-align: center;
-            position: relative;
-        }
+  /* LOGIN */
+  #login-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 57px);
+  }
+  .login-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 36px;
+    width: 380px;
+  }
+  .login-box h2 { margin-bottom: 20px; font-size: 16px; }
+  .remember-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 14px; font-size: 13px; color: var(--muted);
+  }
+  .remember-row input { width: auto; }
 
-        header h1 {
-            font-size: 26px;
-            margin-bottom: 5px;
-        }
+  /* FORM ELEMENTS */
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; margin-top: 14px; }
+  input, select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 9px 12px;
+    font-size: 14px;
+    outline: none;
+    transition: border .15s;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
 
-        header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px; border-radius: 8px; border: none;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s;
+  }
+  .btn:hover { opacity: .85; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-danger  { background: var(--red);    color: #fff; }
+  .btn-ghost   { background: var(--border); color: var(--text); }
+  .btn-full    { width: 100%; justify-content: center; margin-top: 16px; }
+  .btn-sm { padding: 4px 8px; font-size: 12px; }
 
-        .status {
-            position: absolute;
-            top: 12px;
-            right: 16px;
-            font-size: 12px;
-            background: rgba(255,255,255,0.15);
-            padding: 4px 12px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+  /* TABS */
+  .tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+  .tab {
+    padding: 10px 18px; cursor: pointer; font-size: 14px; font-weight: 500;
+    color: var(--muted); border-bottom: 2px solid transparent; transition: all .15s;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #94a3b8;
-        }
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; display: flex; align-items: center; justify-content: space-between; }
 
-        .status-dot.online {
-            background: #22c55e;
-            box-shadow: 0 0 8px #22c55e;
-        }
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 12px; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.02); }
 
-        .status-dot.offline {
-            background: #ef4444;
-        }
+  /* BADGES */
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 99px;
+    font-size: 11px; font-weight: 600;
+  }
+  .badge-green { background: rgba(34,197,94,.15); color: var(--green); }
+  .badge-red   { background: rgba(239,68,68,.15);  color: var(--red); }
+  .badge-blue  { background: rgba(59,130,246,.15); color: var(--accent); }
+  .badge-orange{ background: rgba(245,158,11,.15); color: var(--orange); }
+  .badge-gray  { background: rgba(100,116,139,.15); color: var(--muted); }
 
-        .content {
-            padding: 28px;
-        }
+  /* KEY DISPLAY */
+  .key-code {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: .5px;
+  }
 
-        .form-section {
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 22px;
-            border: 1px solid #e2e8f0;
-        }
+  /* STATS ROW */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 12px; margin-bottom: 24px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .stat-val { font-size: 28px; font-weight: 700; }
+  .stat-lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
-        .form-section h2 {
-            font-size: 17px;
-            color: #1e293b;
-            margin-bottom: 14px;
-        }
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.6); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 28px; width: 520px; max-width: 95vw; max-height: 85vh; overflow-y: auto;
+  }
+  .modal h3 { margin-bottom: 16px; }
+  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
 
-        .form-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
+  /* INLINE ROWS */
+  .row { display: flex; gap: 12px; }
+  .row > * { flex: 1; }
 
-        input[type="text"],
-        input[type="number"] {
-            flex: 1;
-            min-width: 140px;
-            padding: 12px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 15px;
-            outline: none;
-            transition: border 0.2s;
-        }
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--green); color: #fff;
+    padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 200;
+    max-width: 320px;
+  }
+  #toast.show { opacity: 1; }
+  #toast.err { background: var(--red); }
 
-        input:focus {
-            border-color: #6366f1;
-        }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } }
 
-        button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+  .search-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .search-row input { flex: 1; min-width: 160px; }
+  .filter-group { display: flex; gap: 6px; }
 
-        .btn-add {
-            background: #4f46e5;
-            color: white;
-        }
+  #app { display: none; }
 
-        .btn-add:hover {
-            background: #4338ca;
-            transform: translateY(-1px);
-        }
-
-        .btn-update {
-            background: #059669;
-            color: white;
-            display: none;
-        }
-
-        .btn-update:hover {
-            background: #047857;
-        }
-
-        .btn-cancel {
-            background: #94a3b8;
-            color: white;
-            display: none;
-        }
-
-        .search-box {
-            margin-bottom: 22px;
-            position: relative;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 14px 20px 14px 45px;
-            border: 2px solid #e2e8f0;
-            border-radius: 50px;
-            font-size: 16px;
-            outline: none;
-        }
-
-        .search-box input:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            font-size: 18px;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            background: #f1f5f9;
-            padding: 14px 16px;
-            text-align: left;
-            font-weight: 600;
-            color: #334155;
-            font-size: 14px;
-        }
-
-        td {
-            padding: 14px 16px;
-            border-top: 1px solid #e2e8f0;
-            color: #1e293b;
-        }
-
-        tr:hover {
-            background: #f8fafc;
-        }
-
-        .price {
-            font-weight: 700;
-            color: #059669;
-        }
-
-        .actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-edit {
-            background: #3b82f6;
-            color: white;
-            padding: 6px 12px;
-            font-size: 13px;
-        }
-
-        .btn-edit:hover {
-            background: #2563eb;
-        }
-
-        .btn-delete {
-            background: #ef4444;
-            color: white;
-            padding: 6px 12px;
-            font-size: 13px;
-        }
-
-        .btn-delete:hover {
-            background: #dc2626;
-        }
-
-        .empty {
-            text-align: center;
-            padding: 40px;
-            color: #94a3b8;
-            font-size: 16px;
-        }
-
-        .stats {
-            margin-top: 18px;
-            text-align: right;
-            color: #64748b;
-            font-size: 14px;
-        }
-
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #1e293b;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-size: 14px;
-            z-index: 9999;
-            transform: translateX(120%);
-            transition: 0.3s;
-            max-width: 280px;
-        }
-
-        .toast.show {
-            transform: none;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #64748b;
-        }
-
-        @media (max-width: 600px) {
-            .form-row {
-                flex-direction: column;
-            }
-            button {
-                width: 100%;
-            }
-            .status {
-                position: static;
-                justify-content: center;
-                margin-top: 10px;
-            }
-        }
-    </style>
-
-    <!-- Firebase SDK (cùng version với file game của bạn) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  .result-key {
+    font-family: monospace;
+    font-size: 14px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--accent);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .result-key:last-child { border-bottom: none; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>📦 Quản lý sản phẩm Online</h1>
-            <p>Dữ liệu lưu trên server · Nhiều người cùng xem & chỉnh</p>
-            <div class="status">
-                <span class="status-dot" id="statusDot"></span>
-                <span id="statusText">Đang kết nối...</span>
-            </div>
-        </header>
 
-        <div class="content">
-            <!-- Form thêm / sửa -->
-            <div class="form-section">
-                <h2 id="formTitle">➕ Thêm sản phẩm mới</h2>
-                <div class="form-row">
-                    <input type="text" id="productName" placeholder="Tên sản phẩm (ví dụ: Nước ngọt Coca)">
-                    <input type="number" id="productPrice" placeholder="Giá bán (VNĐ)" min="0">
-                    <button class="btn-add" id="btnAdd" onclick="addProduct()">Thêm sản phẩm</button>
-                    <button class="btn-update" id="btnUpdate" onclick="updateProduct()">Cập nhật</button>
-                    <button class="btn-cancel" id="btnCancel" onclick="cancelEdit()">Hủy</button>
-                </div>
-            </div>
+<header>
+  <h1>🎮 Game <span>Key Manager</span></h1>
+  <div class="header-right">
+    <span id="server-url-display"></span>
+    <button id="btn-logout" class="btn btn-ghost btn-sm" style="display:none" onclick="logout()">Đăng xuất</button>
+  </div>
+</header>
 
-            <!-- Thanh tìm kiếm -->
-            <div class="search-box">
-                <span class="search-icon">🔍</span>
-                <input type="text" id="searchInput" placeholder="Tìm kiếm sản phẩm theo tên..." oninput="searchProducts()">
-            </div>
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <h2>🔐 Đăng nhập Admin</h2>
+    <label>Server URL</label>
+    <input id="inp-server" type="text" placeholder="https://your-app.railway.app" />
+    <label>Admin Token</label>
+    <input id="inp-token" type="password" placeholder="admin-secret-change-me" />
+    <div class="remember-row">
+      <input type="checkbox" id="inp-remember" checked>
+      <label for="inp-remember" style="margin:0;cursor:pointer">Ghi nhớ đăng nhập (lưu trên máy này)</label>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="login()">Đăng nhập</button>
+    <p id="login-err" style="color:var(--red);font-size:12px;margin-top:10px"></p>
+  </div>
+</div>
 
-            <!-- Bảng danh sách -->
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 50px">STT</th>
-                            <th>Tên sản phẩm</th>
-                            <th>Giá bán</th>
-                            <th style="width: 150px">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productTable">
-                        <tr>
-                            <td colspan="4" class="loading">⏳ Đang tải dữ liệu từ server...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+<!-- MAIN APP -->
+<div id="app">
+  <div class="container">
 
-            <div class="stats" id="stats">Tổng số sản phẩm: 0</div>
-        </div>
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-val" id="stat-total">—</div>
+        <div class="stat-lbl">Tổng số key</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="stat-active">—</div>
+        <div class="stat-lbl">Key đang hoạt động</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="stat-inactive">—</div>
+        <div class="stat-lbl">Key đã tắt</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="stat-used">—</div>
+        <div class="stat-lbl">Key đã dùng thiết bị</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="stat-devices">—</div>
+        <div class="stat-lbl">Tổng thiết bị</div>
+      </div>
     </div>
 
-    <div class="toast" id="toast"></div>
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('keys')">🔑 Quản lý Key</div>
+      <div class="tab" onclick="switchTab('create')">➕ Tạo Key mới</div>
+    </div>
 
-    <script>
-        // ======================================================
-        // FIREBASE CONFIG (lấy từ file game của bạn)
-        // ======================================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyCyapf8zLqz31Jc7gMUweXrZk1ReP07dv0",
-            databaseURL: "https://nhantin-4ee06-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "nhantin-4ee06"
-        };
+    <!-- TAB: KEY LIST -->
+    <div id="tab-keys">
+      <div class="search-row">
+        <input id="search-inp" type="text" placeholder="Tìm key hoặc ghi chú..." oninput="renderKeys()">
+        <div class="filter-group">
+          <select id="filter-status" onchange="renderKeys()" style="width:auto;min-width:120px">
+            <option value="all">Tất cả</option>
+            <option value="active">Đang Active</option>
+            <option value="inactive">Đã tắt</option>
+            <option value="used">Đã dùng TB</option>
+            <option value="unused">Chưa dùng TB</option>
+          </select>
+          <button class="btn btn-ghost" onclick="loadKeys()">🔄 Làm mới</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Max TB</th>
+                <th>Thời hạn</th>
+                <th>Đang dùng</th>
+                <th>Trạng thái TB</th>
+                <th>Ghi chú</th>
+                <th>Trạng thái</th>
+                <th>Ngày tạo</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="keys-tbody">
+              <tr><td colspan="9" style="color:var(--muted);text-align:center;padding:30px">Đang tải...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    <!-- TAB: CREATE -->
+    <div id="tab-create" style="display:none">
+      <div class="card">
+        <div class="card-title">Tạo key mới</div>
+        <div class="grid2">
+          <div>
+            <label>Số lượng key cần tạo</label>
+            <input id="c-count" type="number" value="1" min="1" max="100">
+          </div>
+          <div>
+            <label>Tiền tố (prefix)</label>
+            <input id="c-prefix" type="text" value="GAME" maxlength="8">
+          </div>
+          <div>
+            <label>Tối đa thiết bị mỗi key</label>
+            <input id="c-devices" type="number" value="1" min="1" max="999">
+          </div>
+          <div>
+            <label>Thời hạn sử dụng (giờ)</label>
+            <input id="c-hours" type="number" value="24" min="1">
+          </div>
+        </div>
+        <label>Ghi chú (tên người mua, v.v.)</label>
+        <input id="c-note" type="text" placeholder="VD: Mua ngày 1/1, trả 50k">
+        <label>Key hết hạn hoàn toàn vào ngày (tuỳ chọn)</label>
+        <input id="c-expire" type="datetime-local">
 
-        // ======================================================
-        // STATE
-        // ======================================================
-        let products = {};          // { id: { name, price, createdAt } }
-        let editId = null;          // id đang sửa
-        let isReady = false;
+        <button class="btn btn-primary" style="margin-top:20px" onclick="createKeys()">✨ Tạo Key</button>
+      </div>
 
-        // ======================================================
-        // KẾT NỐI REALTIME
-        // ======================================================
-        const productsRef = db.ref('cua_hang_san_pham');
+      <!-- RESULT -->
+      <div id="create-result" style="display:none" class="card">
+        <div class="card-title">
+          <span>Key vừa tạo (<span id="created-count">0</span>)</span>
+          <button class="btn btn-ghost btn-sm" onclick="copyAll()">📋 Copy tất cả</button>
+        </div>
+        <div id="result-list"></div>
+      </div>
+    </div>
 
-        productsRef.on('value', (snapshot) => {
-            const data = snapshot.val() || {};
-            products = data;
-            isReady = true;
-            setOnline(true);
-            renderProducts();
-        }, (error) => {
-            console.error('Lỗi Firebase:', error);
-            setOnline(false);
-            toast('Không kết nối được server. Kiểm tra mạng!');
-        });
+  </div>
+</div>
 
-        // ======================================================
-        // UI HELPERS
-        // ======================================================
-        function setOnline(online) {
-            const dot = document.getElementById('statusDot');
-            const text = document.getElementById('statusText');
-            if (online) {
-                dot.className = 'status-dot online';
-                text.textContent = 'Đã kết nối';
-            } else {
-                dot.className = 'status-dot offline';
-                text.textContent = 'Mất kết nối';
-            }
-        }
+<!-- DEVICE MODAL -->
+<div class="modal-overlay" id="device-modal">
+  <div class="modal">
+    <h3>📱 Thiết bị đã sử dụng key</h3>
+    <p id="modal-key-label" style="color:var(--muted);font-size:12px;margin-bottom:12px;font-family:monospace"></p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Device ID</th>
+            <th>Tên máy</th>
+            <th>Kích hoạt</th>
+            <th>Last seen</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="modal-devices-tbody"></tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Đóng</button>
+    </div>
+  </div>
+</div>
 
-        function toast(msg, duration = 2500) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), duration);
-        }
+<div id="toast"></div>
 
-        function formatPrice(price) {
-            return new Intl.NumberFormat('vi-VN').format(price) + ' đ';
-        }
+<script>
+let SERVER = '';
+let TOKEN = '';
+let allKeys = [];
+let currentModalKey = '';
+let lastCreatedKeys = []; // lưu key vừa tạo để copy ổn định
 
-        // ======================================================
-        // RENDER
-        // ======================================================
-        function getProductList() {
-            return Object.keys(products).map(id => ({
-                id,
-                ...products[id]
-            })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        }
+const STORAGE_KEY = 'game_key_manager_auth';
 
-        function renderProducts(list) {
-            if (!list) list = getProductList();
+// ── AUTH / REMEMBER LOGIN ─────────────────────────────────────────────────────
+function saveAuth(server, token) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ server, token, savedAt: Date.now() }));
+  } catch (e) { /* ignore */ }
+}
 
-            const tbody = document.getElementById('productTable');
-            tbody.innerHTML = '';
+function loadSavedAuth() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) { return null; }
+}
 
-            if (!isReady) {
-                tbody.innerHTML = `<tr><td colspan="4" class="loading">⏳ Đang tải dữ liệu từ server...</td></tr>`;
-                return;
-            }
+function clearAuth() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+}
 
-            if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="empty">Chưa có sản phẩm nào. Hãy thêm sản phẩm đầu tiên!</td></tr>`;
-            } else {
-                list.forEach((product, index) => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td>${escapeHtml(product.name)}</td>
-                        <td class="price">${formatPrice(product.price)}</td>
-                        <td class="actions">
-                            <button class="btn-edit" onclick="editProduct('${product.id}')">Sửa</button>
-                            <button class="btn-delete" onclick="deleteProduct('${product.id}')">Xóa</button>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-            }
+async function tryAutoLogin() {
+  const saved = loadSavedAuth();
+  if (!saved || !saved.server || !saved.token) return;
 
-            document.getElementById('stats').textContent = `Tổng số sản phẩm: ${getProductList().length}`;
-        }
+  document.getElementById('inp-server').value = saved.server;
+  document.getElementById('inp-token').value = saved.token;
+  document.getElementById('inp-remember').checked = true;
 
-        function escapeHtml(str) {
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
-        }
+  SERVER = saved.server.replace(/\/$/, '');
+  TOKEN = saved.token;
 
-        // ======================================================
-        // CRUD
-        // ======================================================
-        function addProduct() {
-            if (!isReady) {
-                toast('Chưa kết nối server, vui lòng đợi...');
-                return;
-            }
+  try {
+    const r = await api('GET', '/admin/keys');
+    enterApp(r);
+  } catch (e) {
+    // token hết hạn / server đổi → để user đăng nhập lại
+    document.getElementById('login-err').textContent = 'Phiên cũ không còn hợp lệ, vui lòng đăng nhập lại';
+  }
+}
 
-            const name = document.getElementById('productName').value.trim();
-            const price = document.getElementById('productPrice').value;
+function enterApp(keys) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('btn-logout').style.display = 'inline-flex';
+  document.getElementById('server-url-display').textContent = SERVER;
+  allKeys = keys || [];
+  renderKeys();
+  updateStats();
+}
 
-            if (!name) {
-                toast('Vui lòng nhập tên sản phẩm!');
-                return;
-            }
-            if (!price || price < 0) {
-                toast('Vui lòng nhập giá hợp lệ!');
-                return;
-            }
+function logout() {
+  clearAuth();
+  SERVER = '';
+  TOKEN = '';
+  allKeys = [];
+  lastCreatedKeys = [];
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('btn-logout').style.display = 'none';
+  document.getElementById('server-url-display').textContent = '';
+  document.getElementById('login-err').textContent = '';
+  document.getElementById('inp-token').value = '';
+}
 
-            const newRef = productsRef.push();
-            newRef.set({
-                name: name,
-                price: Number(price),
-                createdAt: Date.now()
-            }).then(() => {
-                toast('✅ Đã thêm sản phẩm!');
-                clearForm();
-            }).catch(err => {
-                console.error(err);
-                toast('Lỗi khi thêm sản phẩm');
-            });
-        }
+async function login() {
+  SERVER = document.getElementById('inp-server').value.trim().replace(/\/$/, '');
+  TOKEN  = document.getElementById('inp-token').value.trim();
+  if (!SERVER || !TOKEN) {
+    document.getElementById('login-err').textContent = 'Điền đầy đủ thông tin';
+    return;
+  }
 
-        function editProduct(id) {
-            const product = products[id];
-            if (!product) return;
+  try {
+    const r = await api('GET', '/admin/keys');
+    if (document.getElementById('inp-remember').checked) {
+      saveAuth(SERVER, TOKEN);
+    } else {
+      clearAuth();
+    }
+    enterApp(r);
+  } catch (e) {
+    document.getElementById('login-err').textContent = 'Sai token hoặc server không kết nối được';
+  }
+}
 
-            editId = id;
-            document.getElementById('productName').value = product.name;
-            document.getElementById('productPrice').value = product.price;
+// ── API ───────────────────────────────────────────────────────────────────────
+async function api(method, path, body) {
+  const res = await fetch(SERVER + path, {
+    method,
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': TOKEN },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || res.statusText);
+  }
+  return res.json();
+}
 
-            document.getElementById('formTitle').textContent = '✏️ Sửa sản phẩm';
-            document.getElementById('btnAdd').style.display = 'none';
-            document.getElementById('btnUpdate').style.display = 'inline-block';
-            document.getElementById('btnCancel').style.display = 'inline-block';
-        }
+// ── LOAD KEYS ─────────────────────────────────────────────────────────────────
+async function loadKeys() {
+  try {
+    allKeys = await api('GET', '/admin/keys');
+    renderKeys();
+    updateStats();
+    toast('🔄 Đã làm mới');
+  } catch (e) {
+    toast('Lỗi tải key: ' + (e.message || e), true);
+  }
+}
 
-        function updateProduct() {
-            if (!editId) return;
+function updateStats() {
+  document.getElementById('stat-total').textContent = allKeys.length;
+  document.getElementById('stat-active').textContent = allKeys.filter(k => k.is_active).length;
+  document.getElementById('stat-inactive').textContent = allKeys.filter(k => !k.is_active).length;
+  document.getElementById('stat-used').textContent = allKeys.filter(k => (k.device_count || 0) > 0).length;
+  document.getElementById('stat-devices').textContent = allKeys.reduce((s, k) => s + (k.device_count || 0), 0);
+}
 
-            const name = document.getElementById('productName').value.trim();
-            const price = document.getElementById('productPrice').value;
+function renderKeys() {
+  const q = (document.getElementById('search-inp').value || '').toLowerCase().trim();
+  const filter = document.getElementById('filter-status').value;
 
-            if (!name || !price || price < 0) {
-                toast('Vui lòng nhập đầy đủ thông tin hợp lệ!');
-                return;
-            }
+  let filtered = allKeys.filter(k => {
+    const matchSearch =
+      (k.key_value || '').toLowerCase().includes(q) ||
+      (k.note || '').toLowerCase().includes(q);
+    if (!matchSearch) return false;
 
-            productsRef.child(editId).update({
-                name: name,
-                price: Number(price)
-            }).then(() => {
-                toast('✅ Đã cập nhật sản phẩm!');
-                cancelEdit();
-            }).catch(err => {
-                console.error(err);
-                toast('Lỗi khi cập nhật');
-            });
-        }
+    if (filter === 'active') return !!k.is_active;
+    if (filter === 'inactive') return !k.is_active;
+    if (filter === 'used') return (k.device_count || 0) > 0;
+    if (filter === 'unused') return (k.device_count || 0) === 0;
+    return true; // all
+  });
 
-        function cancelEdit() {
-            editId = null;
-            clearForm();
-            document.getElementById('formTitle').textContent = '➕ Thêm sản phẩm mới';
-            document.getElementById('btnAdd').style.display = 'inline-block';
-            document.getElementById('btnUpdate').style.display = 'none';
-            document.getElementById('btnCancel').style.display = 'none';
-        }
+  const tbody = document.getElementById('keys-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:24px">Không có key nào phù hợp</td></tr>';
+    return;
+  }
 
-        function deleteProduct(id) {
-            const product = products[id];
-            if (!product) return;
+  tbody.innerHTML = filtered.map(k => {
+    const dur = k.duration_h >= 720 ? `${Math.round(k.duration_h / 720)}th` :
+                k.duration_h >= 24  ? `${Math.round(k.duration_h / 24)}d` : `${k.duration_h}h`;
 
-            if (!confirm(`Bạn có chắc muốn xóa "${product.name}" không?`)) return;
+    const badge = k.is_active
+      ? '<span class="badge badge-green">✓ Active</span>'
+      : '<span class="badge badge-red">✗ Đã tắt</span>';
 
-            productsRef.child(id).remove()
-                .then(() => toast('🗑️ Đã xóa sản phẩm'))
-                .catch(err => {
-                    console.error(err);
-                    toast('Lỗi khi xóa');
-                });
-        }
+    const devCount = k.device_count || 0;
+    const devBadge = devCount >= k.max_devices
+      ? `<span class="badge badge-red">${devCount}/${k.max_devices}</span>`
+      : `<span class="badge badge-blue">${devCount}/${k.max_devices}</span>`;
 
-        // ======================================================
-        // TÌM KIẾM
-        // ======================================================
-        function searchProducts() {
-            const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
-            const list = getProductList();
+    // Trạng thái thiết bị đã dùng chưa
+    const usedBadge = devCount > 0
+      ? '<span class="badge badge-orange">Đã dùng</span>'
+      : '<span class="badge badge-gray">Chưa dùng</span>';
 
-            if (!keyword) {
-                renderProducts(list);
-                return;
-            }
+    const created = k.created_at
+      ? new Date(k.created_at).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : '—';
 
-            const filtered = list.filter(p =>
-                p.name.toLowerCase().includes(keyword)
-            );
-            renderProducts(filtered);
-        }
+    // escape for onclick
+    const safeKey = (k.key_value || '').replace(/'/g, "\\'");
 
-        // ======================================================
-        // FORM HELPERS
-        // ======================================================
-        function clearForm() {
-            document.getElementById('productName').value = '';
-            document.getElementById('productPrice').value = '';
-            document.getElementById('productName').focus();
-        }
+    return `<tr>
+      <td><span class="key-code">${k.key_value}</span></td>
+      <td>${k.max_devices} TB</td>
+      <td>${dur}</td>
+      <td>${devBadge}
+        <button class="btn btn-ghost btn-sm" style="margin-left:4px" onclick="viewDevices('${safeKey}')" title="Xem thiết bị">👁</button>
+      </td>
+      <td>${usedBadge}</td>
+      <td style="color:var(--muted);font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(k.note || '').replace(/"/g, '&quot;')}">${k.note || '—'}</td>
+      <td>${badge}</td>
+      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${created}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-ghost btn-sm" onclick="copyKey('${safeKey}')" title="Copy key">📋</button>
+        ${k.is_active ? `<button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="revokeKey('${safeKey}')" title="Vô hiệu hoá">🚫</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
 
-        // Enter để thêm / cập nhật
-        document.getElementById('productName').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') document.getElementById('productPrice').focus();
-        });
-        document.getElementById('productPrice').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                if (editId) updateProduct();
-                else addProduct();
-            }
-        });
-    </script>
+// ── CREATE KEYS ───────────────────────────────────────────────────────────────
+async function createKeys() {
+  const body = {
+    count:       parseInt(document.getElementById('c-count').value) || 1,
+    prefix:      document.getElementById('c-prefix').value || 'GAME',
+    max_devices: parseInt(document.getElementById('c-devices').value) || 1,
+    duration_h:  parseInt(document.getElementById('c-hours').value) || 24,
+    note:        document.getElementById('c-note').value,
+    expires_at:  document.getElementById('c-expire').value || undefined
+  };
+
+  try {
+    const r = await api('POST', '/admin/keys', body);
+    lastCreatedKeys = r.keys || [];
+
+    document.getElementById('create-result').style.display = 'block';
+    document.getElementById('created-count').textContent = lastCreatedKeys.length;
+
+    document.getElementById('result-list').innerHTML = lastCreatedKeys.map(k =>
+      `<div class="result-key">
+        <span>${k}</span>
+        <button class="btn btn-ghost btn-sm" onclick="copyKey('${k.replace(/'/g, "\\'")}')">📋</button>
+      </div>`
+    ).join('');
+
+    toast(`✅ Đã tạo ${lastCreatedKeys.length} key`);
+    await loadKeys();
+  } catch (e) {
+    toast('Lỗi tạo key: ' + (e.message || e), true);
+  }
+}
+
+// ── COPY (ổn định hơn, có fallback) ───────────────────────────────────────────
+async function copyText(text) {
+  if (!text) return false;
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (e) { /* fallback */ }
+
+  // Fallback cho file:// hoặc trình duyệt cũ
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    ta.style.top = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function copyAll() {
+  if (!lastCreatedKeys.length) {
+    // thử lấy từ DOM nếu biến bị mất
+    const nodes = document.querySelectorAll('#result-list .result-key span');
+    lastCreatedKeys = Array.from(nodes).map(n => n.textContent.trim()).filter(Boolean);
+  }
+  if (!lastCreatedKeys.length) {
+    toast('Không có key để copy', true);
+    return;
+  }
+  const text = lastCreatedKeys.join('\n');
+  const ok = await copyText(text);
+  if (ok) {
+    toast(`📋 Đã copy ${lastCreatedKeys.length} key`);
+  } else {
+    toast('Không copy được. Hãy chọn & Ctrl+C thủ công', true);
+  }
+}
+
+async function copyKey(k) {
+  const ok = await copyText(k);
+  toast(ok ? '📋 Đã copy!' : 'Copy thất bại', !ok);
+}
+
+// ── REVOKE ────────────────────────────────────────────────────────────────────
+async function revokeKey(key) {
+  if (!confirm(`Vô hiệu hoá key ${key}?\nKey sẽ không thể kích hoạt thêm thiết bị mới.`)) return;
+  try {
+    await api('DELETE', `/admin/keys/${encodeURIComponent(key)}`);
+    toast('🚫 Đã vô hiệu hoá key');
+    await loadKeys();
+  } catch (e) {
+    toast('Lỗi: ' + (e.message || e), true);
+  }
+}
+
+// ── DEVICES MODAL ─────────────────────────────────────────────────────────────
+async function viewDevices(key) {
+  currentModalKey = key;
+  document.getElementById('modal-key-label').textContent = key;
+  const tbody = document.getElementById('modal-devices-tbody');
+  tbody.innerHTML = '<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:16px">Đang tải...</td></tr>';
+  document.getElementById('device-modal').classList.add('open');
+
+  try {
+    const devices = await api('GET', `/admin/keys/${encodeURIComponent(key)}/devices`);
+    if (!devices.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px">Chưa có thiết bị nào sử dụng key này</td></tr>';
+    } else {
+      tbody.innerHTML = devices.map(d => {
+        const act = d.activated_at ? new Date(d.activated_at).toLocaleString('vi-VN') : '—';
+        const seen = d.last_seen ? new Date(d.last_seen).toLocaleString('vi-VN') : '—';
+        const safeDid = (d.device_id || '').replace(/'/g, "\\'");
+        return `<tr>
+          <td style="font-size:11px;font-family:monospace;max-width:160px;overflow:hidden;text-overflow:ellipsis" title="${d.device_id}">${d.device_id}</td>
+          <td>${d.device_name || '—'}</td>
+          <td style="font-size:11px;color:var(--muted)">${act}</td>
+          <td style="font-size:11px;color:var(--muted)">${seen}</td>
+          <td><button class="btn btn-danger btn-sm" onclick="kickDevice('${key.replace(/'/g, "\\'")}','${safeDid}')">Kick</button></td>
+        </tr>`;
+      }).join('');
+    }
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--red);text-align:center;padding:16px">Lỗi: ${e.message || e}</td></tr>`;
+  }
+}
+
+function closeModal() {
+  document.getElementById('device-modal').classList.remove('open');
+}
+
+async function kickDevice(key, deviceId) {
+  if (!confirm('Kick thiết bị này khỏi key?\nNgười dùng sẽ phải kích hoạt lại nếu còn slot.')) return;
+  try {
+    await api('DELETE', `/admin/activations/${encodeURIComponent(key)}/${encodeURIComponent(deviceId)}`);
+    toast('👋 Đã kick thiết bị');
+    viewDevices(key);
+    await loadKeys(); // cập nhật số lượng
+  } catch (e) {
+    toast('Lỗi kick: ' + (e.message || e), true);
+  }
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function toast(msg, err = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (err ? ' err' : '');
+  setTimeout(() => t.className = '', 2800);
+}
+
+function switchTab(name) {
+  document.getElementById('tab-keys').style.display   = name === 'keys'   ? 'block' : 'none';
+  document.getElementById('tab-create').style.display = name === 'create' ? 'block' : 'none';
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && name === 'keys') || (i === 1 && name === 'create'));
+  });
+  if (name === 'keys') loadKeys();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+// Thử tự đăng nhập nếu đã lưu
+tryAutoLogin();
+</script>
 </body>
 </html>
